@@ -1,64 +1,85 @@
 # awesome-skills
 
-一个用于沉淀和复用 Agent Skills 的仓库。
+A small, practical collection of reusable agent skills for local workflows and automation.
 
-当前状态：**1 个可用 skill**。
+This repository currently contains **2 skills**:
 
-## 当前 Skills
+| Skill | Description | Path |
+|-------|-------------|------|
+| `check-workday-cn` | Determine whether a date is a working day in mainland China using official holiday override data plus weekday fallback rules. | [`skills/check-workday-cn/`](./skills/check-workday-cn/) |
+| `codex-session-history` | List and inspect local Codex session history by session id, title, project, workspace, source, and local time window. | [`skills/codex-session-history/`](./skills/codex-session-history/) |
 
-### 1) check-workday-cn
+## Installation
 
-- 作用：判断某天在中国大陆是否为工作日。
-- 数据源：`holiday-cn` 年度 JSON（通过 jsDelivr 拉取）。
-- 判定逻辑：
-  - 若日期命中官方节假日/调休表，按 `isOffDay` 判定；
-  - 若未命中，回退为周规则（周一到周五上班，周六周日休息）。
-- 位置：`skills/check-workday-cn/`
+Install all skills from this repository with `npx skills`:
 
-## 快速开始
+```bash
+# Install globally for supported agents
+npx skills add Sube-py/awesome-skills --all -g
 
-### 运行今日是否工作日（Asia/Shanghai）
+# Install for the current project only
+npx skills add Sube-py/awesome-skills --all
+```
+
+## Available Skills
+
+### check-workday-cn
+
+Use this skill when you need a reliable mainland China workday check for today or a specific date.
+
+Examples:
 
 ```bash
 python3 skills/check-workday-cn/scripts/check_today_workday.py
-```
-
-### 查询指定日期
-
-```bash
 python3 skills/check-workday-cn/scripts/check_today_workday.py --date 2026-02-15
-```
-
-### 输出 JSON（适合自动化流程）
-
-```bash
 python3 skills/check-workday-cn/scripts/check_today_workday.py --json
 ```
 
-## 输出字段说明
+Output fields:
 
-- `date`: 查询日期（`YYYY-MM-DD`）
-- `is_workday`: 是否工作日（`true/false`）
-- `reason`: 判定原因（`holiday override` 或 `weekday fallback`）
-- `source_url`: 对应年份的数据源地址
+- `date`
+- `is_workday`
+- `reason`
+- `source_url`
 
-## 目录结构
+### codex-session-history
+
+Use this skill to inspect local Codex sessions stored under `~/.codex/`, especially when you need session ids, workspace paths, project names, or time-window filtering.
+
+Examples:
+
+```bash
+python3 skills/codex-session-history/scripts/list_codex_sessions.py
+python3 skills/codex-session-history/scripts/list_codex_sessions.py --source all
+python3 skills/codex-session-history/scripts/list_codex_sessions.py --project PlayGround
+python3 skills/codex-session-history/scripts/list_codex_sessions.py --date 2026-03-19 --from 11:00 --to 12:00
+python3 skills/codex-session-history/scripts/list_codex_sessions.py --json
+```
+
+Default table columns:
+
+- `id`
+- `project`
+- `started_at`
+- `updated_at`
+- `source`
+- `title`
+
+## Repository Layout
 
 ```text
 awesome-skills/
+├── README.md
 └── skills/
-    └── check-workday-cn/
+    ├── check-workday-cn/
+    │   ├── SKILL.md
+    │   ├── agents/
+    │   └── scripts/
+    └── codex-session-history/
         ├── SKILL.md
-        ├── agents/
-        │   └── openai.yaml
         └── scripts/
-            └── check_today_workday.py
 ```
 
-## 后续扩展建议
+## Publishing Notes
 
-- 每个新 skill 放在 `skills/<skill-name>/`
-- 至少包含：
-  - `SKILL.md`（用途、触发条件、工作流、输出契约）
-  - `scripts/`（可复用脚本）
-  - `agents/`（模型/代理侧配置）
+If you want this repository to be indexed by skills directories such as SkillsMP, check the maintainer checklist in [`docs/skillsmp-readiness.md`](./docs/skillsmp-readiness.md).
