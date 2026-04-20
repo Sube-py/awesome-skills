@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loki Project Logs"
+  short_description: "Query Loki logs by project and file"
+  default_prompt: "Use $query-loki-project-logs to inspect project web, worker, or nginx logs in Loki."
