@@ -2,12 +2,14 @@
 
 A small, practical collection of reusable agent skills for local workflows and automation.
 
-This repository currently contains **2 skills**:
+This repository currently contains **4 skills**:
 
 | Skill | Description | Path |
 |-------|-------------|------|
 | `check-workday-cn` | Determine whether a date is a working day in mainland China using official holiday override data plus weekday fallback rules. | [`skills/check-workday-cn/`](./skills/check-workday-cn/) |
 | `codex-session-history` | List and inspect local Codex session history by session id, title, project, workspace, source, and local time window. | [`skills/codex-session-history/`](./skills/codex-session-history/) |
+| `glab-gitlab-issue` | Read and manage GitLab issues with `glab`, including comments, uploaded files, assignees, labels, and time tracking. | [`skills/glab-gitlab-issue/`](./skills/glab-gitlab-issue/) |
+| `query-loki-project-logs` | Query Grafana Loki logs by project, environment, and stream labels with a helper for common triage workflows. | [`skills/query-loki-project-logs/`](./skills/query-loki-project-logs/) |
 
 ## Installation
 
@@ -65,6 +67,52 @@ Default table columns:
 - `source`
 - `title`
 
+### glab-gitlab-issue
+
+Use this skill to inspect and update GitLab issues from the CLI. When viewing an issue, uploaded files referenced from the description or notes are cached under `${XDG_CACHE_HOME:-$HOME/.cache}/codex/glab-gitlab-issue/` and rewritten to local links in the output.
+
+Examples:
+
+```bash
+bash skills/glab-gitlab-issue/scripts/issue.sh view --repo example-org/example-app --issue 42 --comments
+bash skills/glab-gitlab-issue/scripts/issue.sh view --repo example-org/example-app --issue 42 --comments --json
+bash skills/glab-gitlab-issue/scripts/issue.sh note --repo example-org/example-app --issue 42 --message "Added an update."
+bash skills/glab-gitlab-issue/scripts/issue.sh estimate --repo example-org/example-app --issue 42 --duration 3h
+```
+
+Supported operations include:
+
+- viewing issue details and comments
+- caching uploaded files referenced by issue Markdown
+- posting comments
+- updating assignees and labels
+- setting estimates and managing spent time
+
+### query-loki-project-logs
+
+Use this skill to inspect Loki logs that are organized by labels such as `project_name` or `project`, `env`, and `filename`.
+
+Examples:
+
+```bash
+export LOKI_ADDR="https://loki.example.com"
+export LOKI_USERNAME="demo-user"
+export LOKI_PASSWORD="demo-password"
+
+python3 skills/query-loki-project-logs/scripts/loki_project_logs.py projects --since 720h
+python3 skills/query-loki-project-logs/scripts/loki_project_logs.py envs --since 720h
+python3 skills/query-loki-project-logs/scripts/loki_project_logs.py files --project example-app --env test --since 24h
+python3 skills/query-loki-project-logs/scripts/loki_project_logs.py errors --project example-app --env test --component web --since 1h
+```
+
+Typical triage flow:
+
+- discover project values
+- discover environment values
+- list log stream filenames for a project and environment
+- query errors or custom text in the relevant stream
+- summarize exact timestamps, filenames, and representative log lines
+
 ## Repository Layout
 
 ```text
@@ -75,11 +123,17 @@ awesome-skills/
     │   ├── SKILL.md
     │   ├── agents/
     │   └── scripts/
-    └── codex-session-history/
+    ├── codex-session-history/
+    │   ├── SKILL.md
+    │   └── scripts/
+    ├── glab-gitlab-issue/
+    │   ├── SKILL.md
+    │   ├── agents/
+    │   ├── references/
+    │   └── scripts/
+    └── query-loki-project-logs/
         ├── SKILL.md
+        ├── agents/
+        ├── references/
         └── scripts/
 ```
-
-## Publishing Notes
-
-If you want this repository to be indexed by skills directories such as SkillsMP, check the maintainer checklist in [`docs/skillsmp-readiness.md`](./docs/skillsmp-readiness.md).

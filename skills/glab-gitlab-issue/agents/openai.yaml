@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitLab Issue via glab"
+  short_description: "Manage GitLab issues with cached uploads via glab CLI."
+  default_prompt: "Use $glab-gitlab-issue to view, update, or cache uploaded files from a GitLab issue by issue ID and repository."
