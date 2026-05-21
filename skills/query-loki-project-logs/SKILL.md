@@ -50,6 +50,8 @@ python3 scripts/loki_project_logs.py errors --project pdrouter --env test --comp
 Run these commands from the skill root directory.
 
 The `errors` subcommand narrows to matching `stderr` streams by default.
+When `errors` or `query --component ...` cannot find a filename inside the exact query window, the helper falls back to a 24h discovery window so quiet streams such as `nginx stderr` are still discoverable.
+The helper also escapes `--grep` and `--regex` strings for LogQL, so patterns containing quotes or backslashes are safer to pass through the CLI.
 
 If the script is not appropriate, use raw `logcli` commands from [references/query-patterns.md](references/query-patterns.md).
 

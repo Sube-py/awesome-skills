@@ -16,6 +16,7 @@ EXPORT_PATTERN = re.compile(r"^export\s+([A-Za-z_][A-Za-z0-9_]*)=(.+)$")
 ERROR_PATTERN = r"(ERROR|Error|Exception|Traceback|panic|FATAL|CRITICAL|sqlalchemy\\.exc\\.|asyncpg\\.exceptions\\.)"
 DEFAULT_PROJECT_LABEL_CANDIDATES = ("project_name", "project")
 DEFAULT_ENV_LABEL = "env"
+DEFAULT_DISCOVERY_SINCE = "24h"
 DEFAULT_SHELL_FILES = (
     Path.home() / ".zshrc",
     Path.home() / ".zprofile",
@@ -226,10 +227,14 @@ def list_projects(
     return 0
 
 
+def escape_logql_string(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def build_selector(project_label: str, project: str, env_label: str, env: str | None) -> str:
-    selector_parts = [f'{project_label}="{project}"']
+    selector_parts = [f'{project_label}="{escape_logql_string(project)}"']
     if env:
-        selector_parts.append(f'{env_label}="{env}"')
+        selector_parts.append(f'{env_label}="{escape_logql_string(env)}"')
     return "{" + ", ".join(selector_parts) + "}"
 
 
@@ -273,16 +278,16 @@ def build_query(
     grep: str | None,
     regex: str | None,
 ) -> str:
-    selector_parts = [f'{project_label}="{project}"']
+    selector_parts = [f'{project_label}="{escape_logql_string(project)}"']
     if env:
-        selector_parts.append(f'{env_label}="{env}"')
+        selector_parts.append(f'{env_label}="{escape_logql_string(env)}"')
     if filename:
-        selector_parts.append(f'filename="{filename}"')
+        selector_parts.append(f'filename="{escape_logql_string(filename)}"')
     query = "{" + ", ".join(selector_parts) + "}"
     if grep:
-        query += f' |= "{grep}"'
+        query += f' |= "{escape_logql_string(grep)}"'
     if regex:
-        query += f' |~ "{regex}"'
+        query += f' |~ "{escape_logql_string(regex)}"'
     return query
 
 
@@ -320,6 +325,24 @@ def resolve_target_filenames(
         available = [name for name in available if "stderr" in name]
     if available:
         return available
+    if component and since != DEFAULT_DISCOVERY_SINCE:
+        available = list_files(
+            addr,
+            project_label,
+            project,
+            env_label,
+            env,
+            DEFAULT_DISCOVERY_SINCE,
+            component,
+            org_id,
+            username,
+            password,
+            print_output=False,
+        )
+        if stderr_only:
+            available = [name for name in available if "stderr" in name]
+        if available:
+            return available
     if component:
         raise SystemExit(f"No filenames matched component substring: {component}")
     return []
